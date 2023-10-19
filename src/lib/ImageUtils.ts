@@ -45,7 +45,10 @@ export function getImageData(img: any) {
     return new Promise(async resolve => {
 
         if(img instanceof Blob) {
-            return resolve(await getImageData(URL.createObjectURL(img)));
+            const url = URL.createObjectURL(img);
+            resolve(await getImageData(url));
+            URL.revokeObjectURL(url);
+            return;
         }
 
         if(typeof img == 'string') {
