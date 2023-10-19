@@ -22,7 +22,7 @@
         baseImg.clearAlpha();
         baseImg.createDisplay(baseImgCanvas);
 
-        const resizeToLength = 128;
+        const resizeToLength = 512;
         const [ resizeWidth, resizeHeight ] = (
             baseImg.width > baseImg.height ?
             [ resizeToLength, baseImg.height * (resizeToLength / baseImg.width) ] :
@@ -39,15 +39,21 @@
             }).flat()
         );
 
-        const quantizedImg = resizedImg.toPaletted(palette);
+        const quantizedImg = resizedImg.toPaletted(palette, ImageUtils.DitherMatrix.Burkes);
         quantizedImg.createDisplay(quantizedImgCanvas);
     }
 
 </script>
 
+<style>
+
+    canvas {
+        image-rendering: pixelated;
+    }
+
+</style>
+
 <!-- svelte-ignore a11y-missing-attribute -->
 <input type="file" accept="image/*" bind:files={files}/>
 
-<canvas bind:this={baseImgCanvas} />
-<canvas bind:this={resizedImgCanvas} />
 <canvas bind:this={quantizedImgCanvas} />

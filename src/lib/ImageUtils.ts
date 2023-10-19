@@ -217,6 +217,128 @@ export abstract class ImageDataBase implements ImageDataBase {
 
 
 
+export type DitherMatrix = {
+    matrix: number[][];
+    offsetX: number;
+    offsetY: number;
+}
+
+export const DitherMatrix = {
+    FloydSteinberg: {
+        matrix: [
+            [ 0, 0, 0, 7, 0 ],
+            [ 0, 3, 5, 1, 0 ],
+            [ 0, 0, 0, 0, 0 ]
+        ],
+        offsetX: 2,
+        offsetY: 0
+    },
+    Ordered3x3: {
+        matrix: [
+            [ 1, 7, 4 ],
+            [ 5, 8, 3 ],
+            [ 6, 2, 9 ]
+        ],
+        offsetX: 1,
+        offsetY: 0
+    },
+    MinAvgErr: {
+        matrix: [
+            [ 0, 0, 0, 7, 5 ],
+            [ 3, 5, 7, 5, 3 ],
+            [ 1, 3, 5, 3, 1 ]
+        ],
+        offsetX: 2,
+        offsetY: 0
+    },
+    Burkes: {
+        matrix: [
+            [ 0, 0, 0, 8, 4 ],
+            [ 2, 4, 8, 4, 2 ],
+            [ 0, 0, 0, 0, 0 ]
+        ],
+        offsetX: 2,
+        offsetY: 0
+    },
+    SierraLite: {
+        matrix: [
+            [ 0, 0, 0, 2, 0 ],
+            [ 0, 1, 1, 0, 0 ],
+            [ 0, 0, 0, 0, 0 ]
+        ],
+        offsetX: 2,
+        offsetY: 0
+    },
+    Stucki: {
+        matrix: [
+            [ 0, 0, 0, 8, 4 ],
+            [ 2, 4, 8, 4, 2 ],
+            [ 1, 2, 4, 2, 1 ]
+        ],
+        offsetX: 2,
+        offsetY: 0
+    },
+    Atkinson: {
+        matrix: [
+            [ 0, 0, 0, 1, 1 ],
+            [ 0, 1, 1, 1, 0 ],
+            [ 0, 0, 1, 0, 0 ]
+        ],
+        offsetX: 2,
+        offsetY: 0
+    },
+    MakeBayer: (power: number) => {
+
+        if(power <= 0 || power > 4) {
+            // No one would want a matrix that's bigger than 16x16.
+            throw new Error('Invalid power.');
+        }
+
+        // https://en.wikipedia.org/wiki/Ordered_dithering
+        // https://blog.42yeah.is/rendering/2023/02/18/dithering.html
+
+        function upscale(matrix: number[][]): number[][] {
+
+            const mWidth = matrix[0].length;
+            const mHeight = matrix.length;
+
+            const upscaled = new Array(mHeight * 2).fill(null).map(() => new Array(mWidth * 2).fill(0));
+
+            for(let y = 0; y < mHeight; y++) {
+                for(let x = 0; x < mWidth; x++) {
+                    const cell = matrix[y][x];
+                    const fac = 4;
+                    upscaled[y][x] = fac * cell;
+                    upscaled[y][x + mWidth] = fac * cell + 2;
+                    upscaled[y + mHeight][x] = fac * cell + 3;
+                    upscaled[y + mHeight][x + mWidth] = fac * cell + 1;
+                }
+            }
+
+            return upscaled;
+
+        }
+
+        let matrix = [
+            [ 0, 2 ],
+            [ 3, 1 ]
+        ];
+
+        for(let i = 1; i < power; i++) {
+            matrix = upscale(matrix);
+        }
+
+        return {
+            matrix,
+            offsetX: power == 1 ? 0 : 2,
+            offsetY: 0
+        }
+
+    }
+}
+
+
+
 export class BetterImageData extends ImageDataBase {
 
     public static from(img: ImageData | HTMLCanvasElement | ImageDataBase): BetterImageData;
@@ -299,7 +421,7 @@ export class BetterImageData extends ImageDataBase {
 
 
 
-    public toPaletted(palette: Palette, dither: boolean = true): PalettedImageData {
+    public toPaletted(palette: Palette, dither: DitherMatrix | null = DitherMatrix.FloydSteinberg): PalettedImageData {
         const img = PalettedImageData.empty(palette, this.width, this.height);
 
 
@@ -313,12 +435,9 @@ export class BetterImageData extends ImageDataBase {
 
         
 
-        const offsets: { x: number, y: number, errorMul: number }[] = [
-            { x: 1, y: 0, errorMul: 7 / 16 },
-            { x: -1, y: 1, errorMul: 3 / 16 },
-            { x: 0, y: 1, errorMul: 5 / 16 },
-            { x: 1, y: 1, errorMul: 1 / 16 }
-        ];
+        const ditherDivisor = dither?.matrix.reduce((total, row) => {
+            return total + row.reduce((total, value) => total + value, 0);
+        }, 0) ?? 1;
 
         for(let y = 0; y < this.height; y++) {
             for(let x = 0; x < this.width; x++) {
@@ -329,15 +448,22 @@ export class BetterImageData extends ImageDataBase {
 
                 img.setIndex(x, y, newPixelIndex);
 
-                if(!dither) continue;
+                if(dither === null) continue;
 
                 const quant_error = Color.sub(oldPixel, newPixel);
 
-                for(const offset of offsets) {
-                    const dx = x + offset.x;
-                    const dy = y + offset.y;
-                    if(!img.isInBounds(dx, dy)) continue;
-                    this.set(dx, dy, Color.add(this.get(dx, dy), Color.mul(quant_error, offset.errorMul)));
+                for(let dy = 0; dy < dither.matrix.length; dy++) {
+                    for(let dx = 0; dx < dither.matrix[dy].length; dx++) {
+                        const mul = dither.matrix[dy][dx];
+
+                        const xx = x + dx - dither.offsetX;
+                        const yy = y + dy - dither.offsetY;
+
+                        if(!img.isInBounds(xx, yy)) continue;
+
+                        this.set(xx, yy, Color.add(this.get(xx, yy), Color.mul(quant_error, mul / ditherDivisor)));
+
+                    }
                 }
 
             }
