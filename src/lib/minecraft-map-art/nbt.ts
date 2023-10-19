@@ -28,16 +28,6 @@ interface NBT_ValueBase {
 
 
 
-export class NBT_End implements NBT_ValueBase {
-    public readonly tag = NBT_Tag.End;
-
-    public encode(): ArrayBuffer {
-        return new ArrayBuffer(0);
-    }
-}
-
-
-
 const NBT_NumberTagTypes = {
     'Byte': NBT_Tag.Byte,
     'Short': NBT_Tag.Short,
