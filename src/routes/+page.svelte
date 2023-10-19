@@ -44,9 +44,26 @@
 
 </script>
 
+<svelte:head>
+    <style>
+
+        body {
+            background-color: #111;
+        }
+
+        * {
+            color: white;
+        }
+
+    </style>
+</svelte:head>
+
 <style>
 
     canvas {
+        background-attachment: fixed;
+        background-image: url('./transparent-background.png');
+        background-size: 32px;
         image-rendering: pixelated;
     }
 
