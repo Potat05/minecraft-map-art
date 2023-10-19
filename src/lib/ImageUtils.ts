@@ -266,13 +266,12 @@ export class BetterImageData extends ImageDataBase {
 
         
 
-        const offsets: { x: number, y: number, mul: number }[] = [
-            { x: 1, y: 0, mul: 7 },
-            { x: -1, y: 1, mul: 3  },
-            { x: 0, y: 1, mul: 5 },
-            { x: 1, y: 1, mul: 1 }
+        const offsets: { x: number, y: number, errorMul: number }[] = [
+            { x: 1, y: 0, errorMul: 7 / 16 },
+            { x: -1, y: 1, errorMul: 3 / 16 },
+            { x: 0, y: 1, errorMul: 5 / 16 },
+            { x: 1, y: 1, errorMul: 1 / 16 }
         ];
-        const totalMul = offsets.reduce((total, offset) => total + offset.mul, 0);
 
         for(let y = 0; y < this.height; y++) {
             for(let x = 0; x < this.width; x++) {
@@ -291,7 +290,7 @@ export class BetterImageData extends ImageDataBase {
                     const dx = x + offset.x;
                     const dy = y + offset.y;
                     if(!img.isInBounds(dx, dy)) continue;
-                    this.set(dx, dy, Color.add(this.get(dx, dy), Color.div(Color.mul(quant_error, offset.mul), totalMul)));
+                    this.set(dx, dy, Color.add(this.get(dx, dy), Color.mul(quant_error, offset.errorMul)));
                 }
 
             }
