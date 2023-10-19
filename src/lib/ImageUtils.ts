@@ -421,7 +421,7 @@ export class BetterImageData extends ImageDataBase {
 
 
 
-    public toPaletted(palette: Palette, dither: DitherMatrix | null = DitherMatrix.FloydSteinberg): PalettedImageData {
+    public toPaletted(palette: Palette, dither: DitherMatrix | null = DitherMatrix.FloydSteinberg, ditherAlpha: boolean = false): PalettedImageData {
         const img = PalettedImageData.empty(palette, this.width, this.height);
 
 
@@ -451,6 +451,10 @@ export class BetterImageData extends ImageDataBase {
                 if(dither === null) continue;
 
                 const quant_error = Color.sub(oldPixel, newPixel);
+
+                if(!ditherAlpha) {
+                    quant_error.a = 0;
+                }
 
                 for(let dy = 0; dy < dither.matrix.length; dy++) {
                     for(let dx = 0; dx < dither.matrix[dy].length; dx++) {

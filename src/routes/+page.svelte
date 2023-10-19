@@ -19,7 +19,6 @@
     async function update(file: File): Promise<void> {
 
         const baseImg = await ImageUtils.BetterImageData.from(file);
-        baseImg.clearAlpha();
         baseImg.createDisplay(baseImgCanvas);
 
         const resizeToLength = 512;
