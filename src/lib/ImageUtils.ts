@@ -523,6 +523,12 @@ export class BetterImageData extends ImageDataBase {
 
     }
 
+    public getSection(x: number, y: number, width: number, height: number): BetterImageData {
+        const [ canvas, ctx ] = getCanvas(width, height);
+        ctx.putImageData(this.getImageData(), -x, -y);
+        return BetterImageData.from(canvas);
+    }
+
 }
 
 

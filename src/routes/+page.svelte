@@ -1,6 +1,7 @@
 <script lang="ts">
     import * as ImageUtils from "$lib/ImageUtils";
     import { ColorTone, MapColors, evaluateColor } from "$lib/minecraft-map-art/colors";
+    import { encodeImageToMapNBTs } from "$lib/minecraft-map-art/map";
 
     let files: FileList;
 
@@ -18,31 +19,53 @@
 
     async function update(file: File): Promise<void> {
 
+        // const baseImg = await ImageUtils.BetterImageData.from(file);
+        // baseImg.createDisplay(baseImgCanvas);
+
+        // const resizeToLength = 512;
+        // let [ resizeWidth, resizeHeight ] = (
+        //     baseImg.width > baseImg.height ?
+        //     [ resizeToLength, baseImg.height * (resizeToLength / baseImg.width) ] :
+        //     [ baseImg.width * (resizeToLength / baseImg.height), resizeToLength ]
+        // );
+        // resizeWidth += resizeWidth % 128;
+        // resizeHeight += resizeHeight % 128;
+        
+        // const resizedImg = baseImg.resize(resizeWidth, resizeHeight);
+        // resizedImg.createDisplay(resizedImgCanvas);
+
+        // const palette = new ImageUtils.Palette(
+        //     MapColors.map(mapColor => {
+        //         return [ ColorTone.Dark, ColorTone.Normal, ColorTone.Light, ColorTone.Color4 ].map(tone => {
+        //             return evaluateColor(mapColor.color, tone);
+        //         });
+        //     }).flat()
+        // );
+
+        // const quantizedImg = resizedImg.toPaletted(palette, ImageUtils.DitherMatrix.Burkes);
+        // quantizedImg.createDisplay(quantizedImgCanvas);
+
+
+
         const baseImg = await ImageUtils.BetterImageData.from(file);
         baseImg.createDisplay(baseImgCanvas);
 
-        const resizeToLength = 512;
-        let [ resizeWidth, resizeHeight ] = (
-            baseImg.width > baseImg.height ?
-            [ resizeToLength, baseImg.height * (resizeToLength / baseImg.width) ] :
-            [ baseImg.width * (resizeToLength / baseImg.height), resizeToLength ]
-        );
-        resizeWidth += resizeWidth % 128;
-        resizeHeight += resizeHeight % 128;
-        
-        const resizedImg = baseImg.resize(resizeWidth, resizeHeight);
+        // const resizedImg = baseImg.resize(128 * 2, 128 * 3);
+        const resizedImg = baseImg.resize(128, 128);
         resizedImg.createDisplay(resizedImgCanvas);
 
-        const palette = new ImageUtils.Palette(
-            MapColors.map(mapColor => {
-                return [ ColorTone.Dark, ColorTone.Normal, ColorTone.Light, ColorTone.Color4 ].map(tone => {
-                    return evaluateColor(mapColor.color, tone);
-                });
-            }).flat()
-        );
+        const maps = encodeImageToMapNBTs(resizedImg);
 
-        const quantizedImg = resizedImg.toPaletted(palette, ImageUtils.DitherMatrix.Burkes);
-        quantizedImg.createDisplay(quantizedImgCanvas);
+        const download = document.createElement('a');
+        download.target = '_blank';
+        download.href = URL.createObjectURL(new Blob([ maps[0] ]));
+        download.download = 'map_1.dat';
+        download.innerText = 'Download maps';
+
+        document.body.appendChild(download);
+
+        console.log(maps);
+
     }
 
 </script>
