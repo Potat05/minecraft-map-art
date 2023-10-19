@@ -25,50 +25,65 @@ export async function awaitImageLoad(img: HTMLImageElement): Promise<void> {
     });
 }
 
-export async function getImageData(img: ImageData | HTMLImageElement | HTMLCanvasElement | string | BetterImageData): Promise<ImageData> {
-    return new Promise(async (resolve, reject) => {
+export function getImageData(img: ImageData | HTMLCanvasElement | ImageDataBase): ImageData;
+export function getImageData(img: HTMLImageElement | string | Blob): Promise<ImageData>;
+export function getImageData(img: any) {
 
-        if(img instanceof ImageData) {
-            return resolve(img);
-        }
+    if(img instanceof ImageData) {
+        return img;
+    }
 
-        if(img instanceof BetterImageData) {
-            return resolve(img.getImageData());
+    if(img instanceof BetterImageData) {
+        return img.getImageData();
+    }
+
+    if(img instanceof HTMLCanvasElement) {
+        const ctx = get2dContext(img);
+        return ctx.getImageData(0, 0, img.width, img.height);
+    }
+
+    return new Promise(async resolve => {
+
+        if(img instanceof Blob) {
+            return resolve(await getImageData(URL.createObjectURL(img)));
         }
 
         if(typeof img == 'string') {
             const imgSrc = img;
-            img = document.createElement('img');
-            img.src = imgSrc;
-            return resolve(await getImageData(img));
+            const newImg = img = document.createElement('img');
+            newImg.src = imgSrc;
+            return resolve(await getImageData(newImg));
         }
 
         if(img instanceof HTMLImageElement) {
-            await awaitImageLoad(img).catch(reject);
-            const canvas = document.createElement('canvas');
-            canvas.width = img.naturalWidth;
-            canvas.height = img.naturalHeight;
-            const ctx = canvas.getContext('2d');
-            if(!ctx) {
-                return reject('Canvas rendering context 2d is not supported on browser or machine.');
-            }
+            await awaitImageLoad(img);
+            const [ canvas, ctx ] = getCanvas(img.naturalWidth, img.naturalHeight);
             ctx.drawImage(img, 0, 0);
-            return resolve(await getImageData(canvas));
+            return resolve(getImageData(canvas));
         }
 
-        if(img instanceof HTMLCanvasElement) {
-            const canvas = img;
-            const ctx = canvas.getContext('2d');
-            if(!ctx) {
-                return reject('Canvas rendering context 2d is not supported on browser or machine.');
-            }
-            return resolve(ctx.getImageData(0, 0, canvas.width, canvas.height));
-        }
-
-        reject('Invalid img type.');
+        throw new Error('Invalid img type.');
 
     });
+
 }
+
+export function getCanvas(width: number = 400, height: number = 400, canvas?: HTMLCanvasElement): [ HTMLCanvasElement, CanvasRenderingContext2D ] {
+    if(canvas === undefined) canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+    return [ canvas, get2dContext(canvas) ];
+}
+
+export function get2dContext(canvas: HTMLCanvasElement): CanvasRenderingContext2D {
+    const ctx = canvas.getContext('2d');
+    if(!ctx) {
+        throw new Error('Canvas rendering context 2d is not supported on browser or machine.');
+    }
+    return ctx;
+}
+
+
 
 export class Color {
 
@@ -179,19 +194,48 @@ export abstract class ImageDataBase implements ImageDataBase {
         return new ImageDataDisplay(this, canvas);
     }
 
+    public getImage(as?: 'canvas'): HTMLCanvasElement;
+    public getImage(as?: 'image'): HTMLImageElement;
+    public getImage(as: 'canvas' | 'image' = 'canvas'): HTMLCanvasElement | HTMLImageElement {
+
+        if(as == 'canvas') {
+            const [ canvas, ctx ] = getCanvas(this.width, this.height);
+            ctx.putImageData(this.getImageData(), 0, 0);
+            return canvas;
+        } else if(as == 'image') {
+            throw new Error('Unimplemented.');
+        } else {
+            throw new Error('getImage invalid arguments.');
+        }
+        
+    }
+
 }
 
 
 
 export class BetterImageData extends ImageDataBase {
 
-    public static async from(...args: Parameters<typeof getImageData>): Promise<BetterImageData> {
-        const img = await getImageData(...args);
-        return new this(
-            new Float32Array(img.data).map(v => v / 255),
-            img.width,
-            img.height
-        );
+    public static from(img: ImageData | HTMLCanvasElement | ImageDataBase): BetterImageData;
+    public static from(img: HTMLImageElement | string | Blob): Promise<BetterImageData>;
+    public static from(img: any) {
+        const imgData = getImageData(img);
+        if(imgData instanceof Promise) {
+            return new Promise(async resolve => {
+                const awaitedImgData = await imgData;
+                return resolve(new BetterImageData(
+                    new Float32Array(awaitedImgData.data).map(v => v / 255),
+                    awaitedImgData.width,
+                    awaitedImgData.height
+                ));
+            });
+        } else {
+            return new BetterImageData(
+                new Float32Array(imgData.data).map(v => v / 255),
+                imgData.width,
+                imgData.height
+            );
+        }
     }
 
     public readonly data: Float32Array;
@@ -297,6 +341,32 @@ export class BetterImageData extends ImageDataBase {
         }
 
         return img;
+    }
+
+
+
+    public resize(scale: number): BetterImageData;
+    public resize(width: number, height: number): BetterImageData;
+    public resize(arg1: number, arg2?: number, smoothing: 'off' | 'low' | 'medium' | 'high' = 'high'): BetterImageData {
+
+        const [ width, height ] = (
+            arg2 === undefined ?
+            [ Math.round(this.width * arg1), Math.round(this.height * arg1) ] :
+            [ Math.round(arg1), Math.round(arg2) ]
+        );
+
+        const [ canvas, ctx ] = getCanvas(width, height);
+
+        if(smoothing == 'off') {
+            ctx.imageSmoothingEnabled = false;
+        } else {
+            ctx.imageSmoothingEnabled = true;
+            ctx.imageSmoothingQuality = smoothing;
+        }
+        ctx.drawImage(this.getImage(), 0, 0, width, height);
+
+        return BetterImageData.from(canvas);
+
     }
 
 }
