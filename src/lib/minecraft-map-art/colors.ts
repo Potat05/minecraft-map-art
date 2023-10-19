@@ -5,9 +5,9 @@
 
 */
 
+import { Color } from "$lib/ImageUtils";
 
 
-export type Color = [ number, number, number ];
 
 export enum ColorTone {
     Dark,
@@ -26,20 +26,8 @@ export function evaluateColor(color: Color, tone: ColorTone): Color {
         [ColorTone.Color4]: 135
     }[tone];
 
-    return [
-        Math.floor((color[0] * multiplier) / 255),
-        Math.floor((color[1] * multiplier) / 255),
-        Math.floor((color[2] * multiplier) / 255)
-    ];
+    return Color.div(Color.div(Color.mul(color, multiplier), 255), 255).clearAlpha();
 
-}
-
-export function colorDistance(color1: Color, color2: Color): number {
-    return Math.sqrt(
-        (color2[0] - color1[0])**2 +
-        (color2[1] - color1[1])**2 +
-        (color2[2] - color1[2])**2
-    );
 }
 
 
@@ -67,312 +55,312 @@ export type MapColorList = MapColor[];
 export const MapColors: MapColorList = [
     {
         name: 'NONE',
-        color: [ 0, 0, 0 ],
+        color: new Color(0, 0, 0),
         blocks: []
     },
     {
         name: 'GRASS',
-        color: [ 127, 178, 56 ],
+        color: new Color(127, 178, 56),
         blocks: []
     },
     {
         name: 'SAND',
-        color: [ 247, 233, 163 ],
+        color: new Color(247, 233, 163),
         blocks: []
     },
     {
         name: 'WOOL',
-        color: [ 199, 199, 199 ],
+        color: new Color(199, 199, 199),
         blocks: []
     },
     {
         name: 'FIRE',
-        color: [ 255, 0, 0 ],
+        color: new Color(255, 0, 0),
         blocks: []
     },
     {
         name: 'ICE',
-        color: [ 160, 160, 255 ],
+        color: new Color(160, 160, 255),
         blocks: []
     },
     {
         name: 'METAL',
-        color: [ 167, 167, 167 ],
+        color: new Color(167, 167, 167),
         blocks: []
     },
     {
         name: 'PLANT',
-        color: [ 0, 124, 0 ],
+        color: new Color(0, 124, 0),
         blocks: []
     },
     {
         name: 'SNOW',
-        color: [ 255, 255, 255 ],
+        color: new Color(255, 255, 255),
         blocks: []
     },
     {
         name: 'CLAY',
-        color: [ 164, 168, 184 ],
+        color: new Color(164, 168, 184),
         blocks: []
     },
     {
         name: 'DIRT',
-        color: [ 151, 109, 77 ],
+        color: new Color(151, 109, 77),
         blocks: []
     },
     {
         name: 'STONE',
-        color: [ 112, 112, 112 ],
+        color: new Color(112, 112, 112),
         blocks: []
     },
     {
         name: 'WATER',
-        color: [ 64, 64, 255 ],
+        color: new Color(64, 64, 255),
         blocks: []
     },
     {
         name: 'WOOD',
-        color: [ 143, 119, 72 ],
+        color: new Color(143, 119, 72),
         blocks: []
     },
     {
         name: 'QUARTZ',
-        color: [ 255, 252, 245 ],
+        color: new Color(255, 252, 245),
         blocks: []
     },
     {
         name: 'COLOR_ORANGE',
-        color: [ 216, 127, 51 ],
+        color: new Color(216, 127, 51),
         blocks: []
     },
     {
         name: 'COLOR_MAGENTA',
-        color: [ 178, 76, 216 ],
+        color: new Color(178, 76, 216),
         blocks: []
     },
     {
         name: 'COLOR_LIGHT_BLUE',
-        color: [ 102, 153, 216 ],
+        color: new Color(102, 153, 216),
         blocks: []
     },
     {
         name: 'COLOR_YELLOW',
-        color: [ 229, 229, 51 ],
+        color: new Color(229, 229, 51),
         blocks: []
     },
     {
         name: 'COLOR_LIGHT_GREEN',
-        color: [ 127, 204, 25 ],
+        color: new Color(127, 204, 25),
         blocks: []
     },
     {
         name: 'COLOR_PINK',
-        color: [ 242, 127, 165 ],
+        color: new Color(242, 127, 165),
         blocks: []
     },
     {
         name: 'COLOR_GRAY',
-        color: [ 76, 76, 76 ],
+        color: new Color(76, 76, 76),
         blocks: []
     },
     {
         name: 'COLOR_LIGHT_GRAY',
-        color: [ 153, 153, 153 ],
+        color: new Color(153, 153, 153),
         blocks: []
     },
     {
         name: 'COLOR_CYAN',
-        color: [ 76, 127, 153 ],
+        color: new Color(76, 127, 153),
         blocks: []
     },
     {
         name: 'COLOR_PURPLE',
-        color: [ 127, 63, 178 ],
+        color: new Color(127, 63, 178),
         blocks: []
     },
     {
         name: 'COLOR_BLUE',
-        color: [ 51, 76, 178 ],
+        color: new Color(51, 76, 178),
         blocks: []
     },
     {
         name: 'COLOR_BROWN',
-        color: [ 102, 76, 51 ],
+        color: new Color(102, 76, 51),
         blocks: []
     },
     {
         name: 'COLOR_GREEN',
-        color: [ 102, 127, 51 ],
+        color: new Color(102, 127, 51),
         blocks: []
     },
     {
         name: 'COLOR_RED',
-        color: [ 153, 51, 51 ],
+        color: new Color(153, 51, 51),
         blocks: []
     },
     {
         name: 'COLOR_BLACK',
-        color: [ 25, 25, 25 ],
+        color: new Color(25, 25, 25),
         blocks: []
     },
     {
         name: 'GOLD',
-        color: [ 250, 238, 77 ],
+        color: new Color(250, 238, 77),
         blocks: []
     },
     {
         name: 'DIAMOND',
-        color: [ 92, 219, 213 ],
+        color: new Color(92, 219, 213),
         blocks: []
     },
     {
         name: 'LAPIS',
-        color: [ 74, 128, 255 ],
+        color: new Color(74, 128, 255),
         blocks: []
     },
     {
         name: 'EMERALD',
-        color: [ 0, 217, 58 ],
+        color: new Color(0, 217, 58),
         blocks: []
     },
     {
         name: 'PODZOL',
-        color: [ 129, 86, 49 ],
+        color: new Color(129, 86, 49),
         blocks: []
     },
     {
         name: 'NETHER',
-        color: [ 112, 2, 0 ],
+        color: new Color(112, 2, 0),
         blocks: []
     },
     {
         name: 'TERRACOTTA_WHITE',
-        color: [ 209, 177, 161 ],
+        color: new Color(209, 177, 161),
         blocks: []
     },
     {
         name: 'TERRACOTTA_ORANGE',
-        color: [ 159, 82, 36 ],
+        color: new Color(159, 82, 36),
         blocks: []
     },
     {
         name: 'TERRACOTTA_MAGENTA',
-        color: [ 149, 87, 108 ],
+        color: new Color(149, 87, 108),
         blocks: []
     },
     {
         name: 'TERRACOTTA_LIGHT_BLUE',
-        color: [ 112, 108, 138 ],
+        color: new Color(112, 108, 138),
         blocks: []
     },
     {
         name: 'TERRACOTTA_YELLOW',
-        color: [ 186, 133, 36 ],
+        color: new Color(186, 133, 36),
         blocks: []
     },
     {
         name: 'TERRACOTTA_LIGHT_GREEN',
-        color: [ 103, 117, 53 ],
+        color: new Color(103, 117, 53),
         blocks: []
     },
     {
         name: 'TERRACOTTA_PINK',
-        color: [ 160, 77, 78 ],
+        color: new Color(160, 77, 78),
         blocks: []
     },
     {
         name: 'TERRACOTTA_GRAY',
-        color: [ 57, 41, 35 ],
+        color: new Color(57, 41, 35),
         blocks: []
     },
     {
         name: 'TERRACOTTA_LIGHT_GRAY',
-        color: [ 135, 107, 98 ],
+        color: new Color(135, 107, 98),
         blocks: []
     },
     {
         name: 'TERRACOTTA_CYAN',
-        color: [ 87, 92, 92 ],
+        color: new Color(87, 92, 92),
         blocks: []
     },
     {
         name: 'TERRACOTTA_PURPLE',
-        color: [ 122, 73, 88 ],
+        color: new Color(122, 73, 88),
         blocks: []
     },
     {
         name: 'TERRACOTTA_BLUE',
-        color: [ 76, 62, 92 ],
+        color: new Color(76, 62, 92),
         blocks: []
     },
     {
         name: 'TERRACOTTA_BROWN',
-        color: [ 76, 50, 35 ],
+        color: new Color(76, 50, 35),
         blocks: []
     },
     {
         name: 'TERRACOTTA_GREEN',
-        color: [ 76, 82, 42 ],
+        color: new Color(76, 82, 42),
         blocks: []
     },
     {
         name: 'TERRACOTTA_RED',
-        color: [ 142, 60, 46 ],
+        color: new Color(142, 60, 46),
         blocks: []
     },
     {
         name: 'TERRACOTTA_BLACK',
-        color: [ 37, 22, 16 ],
+        color: new Color(37, 22, 16),
         blocks: []
     },
     {
         name: 'CRIMSON_NYLIUM',
-        color: [ 189, 48, 49 ],
+        color: new Color(189, 48, 49),
         blocks: []
     },
     {
         name: 'CRIMSON_STEM',
-        color: [ 148, 63, 97 ],
+        color: new Color(148, 63, 97),
         blocks: []
     },
     {
         name: 'CRIMSON_HYPHAE',
-        color: [ 92, 25, 29 ],
+        color: new Color(92, 25, 29),
         blocks: []
     },
     {
         name: 'WARPED_NYLIUM',
-        color: [ 22, 126, 134 ],
+        color: new Color(22, 126, 134),
         blocks: []
     },
     {
         name: 'WARPED_STEM',
-        color: [ 58, 142, 140 ],
+        color: new Color(58, 142, 140),
         blocks: []
     },
     {
         name: 'WARPED_HYPHAE',
-        color: [ 86, 44, 62 ],
+        color: new Color(86, 44, 62),
         blocks: []
     },
     {
         name: 'WARPED_WART_BLOCK',
-        color: [ 20, 180, 133 ],
+        color: new Color(20, 180, 133),
         blocks: []
     },
     {
         name: 'DEEPSLATE',
-        color: [ 100, 100, 100 ],
+        color: new Color(100, 100, 100),
         blocks: []
     },
     {
         name: 'RAW_IRON',
-        color: [ 216, 175, 147 ],
+        color: new Color(216, 175, 147),
         blocks: []
     },
     {
         name: 'GLOW_LICHEN',
-        color: [ 127, 167, 150 ],
+        color: new Color(127, 167, 150),
         blocks: []
     }
 ];

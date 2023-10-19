@@ -1,6 +1,6 @@
 <script lang="ts">
     import { onMount } from "svelte";
-    import { ImageUtils } from "$lib/ImageUtils";
+    import * as ImageUtils from "$lib/ImageUtils";
     import { ColorTone, MapColors, evaluateColor } from "$lib/minecraft-map-art/colors";
 
     let baseImgCanvas: HTMLCanvasElement;
@@ -14,16 +14,12 @@
         const palette = new ImageUtils.Palette(
             MapColors.map(mapColor => {
                 return [ ColorTone.Dark, ColorTone.Normal, ColorTone.Light, ColorTone.Color4 ].map(tone => {
-                    const color = evaluateColor(mapColor.color, tone);
-                    return ImageUtils.Color.from(
-                        color[0] / 255,
-                        color[1] / 255,
-                        color[2] / 255,
-                        1
-                    );
+                    return evaluateColor(mapColor.color, tone);
                 });
             }).flat()
         );
+
+        console.log(palette);
 
         const quantizedImg = baseImg.toPaletted(palette);
         quantizedImg.createDisplay(quantizedImgCanvas);
