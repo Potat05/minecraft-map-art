@@ -26,7 +26,12 @@ export function evaluateColor(color: Color, tone: ColorTone): Color {
         [ColorTone.Color4]: 135
     }[tone];
 
-    return Color.div(Color.div(Color.mul(color, multiplier), 255), 255).clearAlpha();
+    return new Color(
+        (color.r * multiplier) / (255 * 255),
+        (color.g * multiplier) / (255 * 255),
+        (color.b * multiplier) / (255 * 255),
+        color.a
+    );
 
 }
 
@@ -55,7 +60,7 @@ export type MapColorList = MapColor[];
 export const MapColors: MapColorList = [
     {
         name: 'NONE',
-        color: new Color(0, 0, 0),
+        color: new Color(0, 0, 0, 0),
         blocks: []
     },
     {
