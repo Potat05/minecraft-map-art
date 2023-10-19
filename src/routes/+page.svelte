@@ -22,12 +22,15 @@
         baseImg.createDisplay(baseImgCanvas);
 
         const resizeToLength = 512;
-        const [ resizeWidth, resizeHeight ] = (
+        let [ resizeWidth, resizeHeight ] = (
             baseImg.width > baseImg.height ?
             [ resizeToLength, baseImg.height * (resizeToLength / baseImg.width) ] :
             [ baseImg.width * (resizeToLength / baseImg.height), resizeToLength ]
         );
-        const resizedImg = baseImg.resize(512, 512);
+        resizeWidth += resizeWidth % 128;
+        resizeHeight += resizeHeight % 128;
+        
+        const resizedImg = baseImg.resize(resizeWidth, resizeHeight);
         resizedImg.createDisplay(resizedImgCanvas);
 
         const palette = new ImageUtils.Palette(
