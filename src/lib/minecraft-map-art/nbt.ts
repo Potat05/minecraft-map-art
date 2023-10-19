@@ -294,8 +294,6 @@ export function encodeNBT(nbt: ArrayBuffer | NBT_Value, gzip: boolean = true): A
         ]), nbt]);
     }
 
-    console.log(nbt);
-
     if(!gzip) return nbt;
     return pako.gzip(nbt).buffer;
 }
