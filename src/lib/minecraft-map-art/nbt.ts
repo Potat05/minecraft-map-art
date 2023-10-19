@@ -66,7 +66,9 @@ export class NBT_Number<NumType extends keyof typeof NBT_NumberTagTypes> impleme
 
     public encode(): ArrayBuffer {
         // @ts-ignore - TODO: Don't require this ts-ignore.
-        return new NBT_NumberArrayTypes[this.tag]([ this.number ]).buffer;
+        const buffer = new NBT_NumberArrayTypes[this.tag]([ this.number ]).buffer;
+        const reversed = new Uint8Array(buffer).reverse();
+        return reversed.buffer;
     }
 }
 
@@ -98,7 +100,7 @@ export class NBT_Byte_Array implements NBT_ValueBase {
     }
 
     public encode(): ArrayBuffer {
-        return this.array.buffer;
+        return joinBuffers([ new NBT_Number('Int', this.array.length).encode(), this.array.buffer ]);
     }
 }
 
@@ -111,7 +113,8 @@ export class NBT_Int_Array implements NBT_ValueBase {
     }
 
     public encode(): ArrayBuffer {
-        return this.array.buffer;
+        // TODO: This is little endian, make this encode to big endian.
+        return joinBuffers([ new NBT_Number('Int', this.array.length).encode(), this.array.buffer ]);
     }
 }
 
@@ -124,12 +127,13 @@ export class NBT_Long_Array implements NBT_ValueBase {
     }
 
     public encode(): ArrayBuffer {
-        return this.array.buffer;
+        // TODO: This is little endian, make this encode to big endian.
+        return joinBuffers([ new NBT_Number('Int', this.array.length).encode(), this.array.buffer ]);
     }
 }
 
 export class NBT_Compound<T extends {[key: string]: NBT_Value}> implements NBT_ValueBase {
-    public readonly tag = NBT_Tag.End;
+    public readonly tag = NBT_Tag.Compound;
 
     public obj: T;
     constructor(obj: T) {
@@ -179,6 +183,7 @@ export class NBT_List<Tag extends NBT_Tag> implements NBT_ValueBase {
         let buffers: ArrayBuffer[] = [];
 
         buffers.push(new Uint8Array([
+            // this.listTag == NBT_Tag.Compound ?? this.list.length == 0 ? NBT_Tag.End : this.listTag,
             this.listTag,
             this.list.length << 24,
             this.list.length << 16,
@@ -283,7 +288,13 @@ function joinBuffers(buffers: ArrayBuffer[]): ArrayBuffer {
 export function encodeNBT(nbt: ArrayBuffer | NBT_Value, gzip: boolean = true): ArrayBuffer {
     if(!(nbt instanceof ArrayBuffer)) {
         nbt = NBTBase(nbt).encode();
+        nbt = joinBuffers([new Uint8Array([
+            NBT_Tag.Compound,
+            0, 0
+        ]), nbt]);
     }
+
+    console.log(nbt);
 
     if(!gzip) return nbt;
     return pako.gzip(nbt).buffer;
