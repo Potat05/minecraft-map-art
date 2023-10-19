@@ -28,7 +28,7 @@
             [ resizeToLength, baseImg.height * (resizeToLength / baseImg.width) ] :
             [ baseImg.width * (resizeToLength / baseImg.height), resizeToLength ]
         );
-        const resizedImg = baseImg.resize(resizeWidth, resizeHeight);
+        const resizedImg = baseImg.resize(512, 512);
         resizedImg.createDisplay(resizedImgCanvas);
 
         const palette = new ImageUtils.Palette(

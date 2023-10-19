@@ -474,15 +474,24 @@ export class BetterImageData extends ImageDataBase {
 
 
 
-    public resize(scale: number): BetterImageData;
-    public resize(width: number, height: number): BetterImageData;
-    public resize(arg1: number, arg2?: number, smoothing: 'off' | 'low' | 'medium' | 'high' = 'high'): BetterImageData {
+    public resize(scale: number, smoothing?: 'off' | 'low' | 'medium' | 'high'): BetterImageData;
+    public resize(width: number, height: number, method?: 'strech' | 'contain' | 'cover', smoothing?: 'off' | 'low' | 'medium' | 'high'): BetterImageData;
+    public resize(arg1: number, arg2?: 'off' | 'low' | 'medium' | 'high' | number, arg3?: 'strech' | 'contain' | 'cover', arg4?: 'off' | 'low' | 'medium' | 'high'): BetterImageData {
 
-        const [ width, height ] = (
-            arg2 === undefined ?
-            [ Math.round(this.width * arg1), Math.round(this.height * arg1) ] :
-            [ Math.round(arg1), Math.round(arg2) ]
+        const [ width, height, smoothing, method ]: [
+            number,
+            number,
+            'off' | 'low' | 'medium' | 'high',
+            'strech' | 'contain' | 'cover'
+        ] = (
+            (arg2 === undefined || typeof arg2 == 'string') ?
+            [ Math.round(this.width * arg1), Math.round(this.height * arg1), arg2 ?? 'high', 'strech' ] :
+            [ Math.round(arg1), Math.round(arg2), arg4 ?? 'high', arg3 ?? 'contain' ]
         );
+
+        if(width <= 0 || height <= 0 || Number.isNaN(width) || Number.isNaN(height)) {
+            throw new Error('Invalid arguments.');
+        }
 
         const [ canvas, ctx ] = getCanvas(width, height);
 
@@ -492,7 +501,19 @@ export class BetterImageData extends ImageDataBase {
             ctx.imageSmoothingEnabled = true;
             ctx.imageSmoothingQuality = smoothing;
         }
-        ctx.drawImage(this.getImage(), 0, 0, width, height);
+
+        // TODO: Add none method that just centers and doesn't resize.
+        if(method == 'strech') {
+            ctx.drawImage(this.getImage(), 0, 0, width, height);
+        } else if(method == 'contain') {
+            const ratio = Math.min(width / this.width, height / this.height);
+            ctx.drawImage(this.getImage(), 0, 0, this.width, this.height, (width - this.width*ratio) / 2, (height - this.height*ratio) / 2, this.width*ratio, this.height*ratio);
+        } else if(method == 'cover') {
+            const ratio = Math.max(width / this.width, height / this.height);
+            ctx.drawImage(this.getImage(), 0, 0, this.width, this.height, (width - this.width*ratio) / 2, (height - this.height*ratio) / 2, this.width*ratio, this.height*ratio);
+        } else {
+            throw new Error('Invalid arguments.');
+        }
 
         return BetterImageData.from(canvas);
 
