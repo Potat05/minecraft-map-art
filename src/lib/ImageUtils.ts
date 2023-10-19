@@ -235,7 +235,7 @@ export class BetterImageData extends ImageDataBase {
 
 
     public clearAlpha(): void {
-        for(let i = 3; i < this.data.length; i++) {
+        for(let i = 3; i < this.data.length; i += 4) {
             this.data[i] = 1;
         }
     }
