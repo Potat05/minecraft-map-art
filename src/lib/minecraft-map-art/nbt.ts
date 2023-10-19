@@ -203,6 +203,9 @@ function NBTBase(value: NBT_Value): NBT_ValueBase {
     if(typeof value == 'string') {
         return new NBT_String(value);
     }
+    if(typeof value == 'boolean') {
+        return new NBT_Number('Byte', value ? 1 : 0);
+    }
     if(
         !(value instanceof NBT_Number) &&
         !(value instanceof NBT_String) &&
@@ -255,6 +258,7 @@ export interface NBT_Values {
 
 export type NBT_Value = NBT_Values[keyof NBT_Values]
      | string
+     | boolean
      | Array<NBT_Value>
      | {[key: string]: NBT_Value};
 
