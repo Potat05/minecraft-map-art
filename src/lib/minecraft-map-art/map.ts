@@ -1,10 +1,10 @@
-import { Palette, type BetterImageData } from "$lib/ImageUtils";
+import { Palette, BetterImageData, PalettedImageData } from "$lib/ImageUtils";
 import { ColorTone, MapColors, evaluateColor } from "./colors";
-import { NBT_Byte_Array, NBT_Compound, NBT_List, NBT_Number, NBT_Tag, encodeNBT } from "./nbt";
+import { NBT_Byte_Array, NBT_List, NBT_Number, NBT_Tag, encodeNBT } from "./nbt";
 
 
 
-export function encodeImageToMapNBTs(image: BetterImageData): ArrayBuffer[] {
+export function encodeImageToMapNBTs(image: BetterImageData): { maps: ArrayBuffer[], baseImg: PalettedImageData } {
 
     const mapWidth = Math.ceil(image.width / 128);
     const mapHeight = Math.ceil(image.height / 128);
@@ -17,6 +17,9 @@ export function encodeImageToMapNBTs(image: BetterImageData): ArrayBuffer[] {
         }).flat()
     );
 
+    const paletted = image.toPaletted(mapPalette);
+    const palettedFull = BetterImageData.from(paletted.getImageData());
+
 
 
     let nbts: ArrayBuffer[] = [];
@@ -24,9 +27,9 @@ export function encodeImageToMapNBTs(image: BetterImageData): ArrayBuffer[] {
     for(let mapX = 0; mapX < mapWidth; mapX++) {
         for(let mapY = 0; mapY < mapHeight; mapY++) {
 
-            const section = image.getSection(mapX * 128, mapY * 128, 128, 128);
+            const section = palettedFull.getSection(mapX * 128, mapY * 128, 128, 128);
 
-            const quan = section.toPaletted(mapPalette);
+            const quan = section.toPaletted(mapPalette, null);
 
             const colors = new Int8Array(128 * 128);
             quan.indices.forEach((pal, ind) => {
@@ -50,10 +53,12 @@ export function encodeImageToMapNBTs(image: BetterImageData): ArrayBuffer[] {
                 }
             });
 
+            nbts.push(nbt);
+
         }
     }
 
-    return nbts;
+    return { maps: nbts, baseImg: paletted };
 
 }
 

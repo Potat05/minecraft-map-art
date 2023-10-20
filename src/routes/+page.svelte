@@ -1,7 +1,7 @@
 <script lang="ts">
     import * as ImageUtils from "$lib/ImageUtils";
-    import { ColorTone, MapColors, evaluateColor } from "$lib/minecraft-map-art/colors";
     import { encodeImageToMapNBTs } from "$lib/minecraft-map-art/map";
+    import JSZip from 'jszip';
 
     let files: FileList;
 
@@ -13,58 +13,36 @@
         }
     }
 
-    let baseImgCanvas: HTMLCanvasElement;
-    let resizedImgCanvas: HTMLCanvasElement;
-    let quantizedImgCanvas: HTMLCanvasElement;
+    let previewCanvas: HTMLCanvasElement;
+
+    let mapsWidth: number = 2;
+    let mapsHeight: number = 2;
+
+    let download: HTMLAnchorElement;
 
     async function update(file: File): Promise<void> {
 
-        // const baseImg = await ImageUtils.BetterImageData.from(file);
-        // baseImg.createDisplay(baseImgCanvas);
-
-        // const resizeToLength = 512;
-        // let [ resizeWidth, resizeHeight ] = (
-        //     baseImg.width > baseImg.height ?
-        //     [ resizeToLength, baseImg.height * (resizeToLength / baseImg.width) ] :
-        //     [ baseImg.width * (resizeToLength / baseImg.height), resizeToLength ]
-        // );
-        // resizeWidth += resizeWidth % 128;
-        // resizeHeight += resizeHeight % 128;
-        
-        // const resizedImg = baseImg.resize(resizeWidth, resizeHeight);
-        // resizedImg.createDisplay(resizedImgCanvas);
-
-        // const palette = new ImageUtils.Palette(
-        //     MapColors.map(mapColor => {
-        //         return [ ColorTone.Dark, ColorTone.Normal, ColorTone.Light, ColorTone.Color4 ].map(tone => {
-        //             return evaluateColor(mapColor.color, tone);
-        //         });
-        //     }).flat()
-        // );
-
-        // const quantizedImg = resizedImg.toPaletted(palette, ImageUtils.DitherMatrix.Burkes);
-        // quantizedImg.createDisplay(quantizedImgCanvas);
-
-
-
         const baseImg = await ImageUtils.BetterImageData.from(file);
-        baseImg.createDisplay(baseImgCanvas);
 
-        // const resizedImg = baseImg.resize(128 * 2, 128 * 3);
-        const resizedImg = baseImg.resize(128, 128);
-        resizedImg.createDisplay(resizedImgCanvas);
+        const resizedImg = baseImg.resize(128 * Math.max(Math.min(mapsWidth, 10), 1), 128 * Math.max(Math.min(mapsHeight, 10), 1));
 
-        const maps = encodeImageToMapNBTs(resizedImg);
+        const generated = encodeImageToMapNBTs(resizedImg);
+        generated.baseImg.createDisplay(previewCanvas)
 
-        const download = document.createElement('a');
-        download.target = '_blank';
-        download.href = URL.createObjectURL(new Blob([ maps[0] ]));
-        download.download = 'map_1.dat';
-        download.innerText = 'Download maps';
+        const zip = new JSZip();
 
-        document.body.appendChild(download);
+        const mapIndexOffset = Math.floor(Math.random() * 0xFFFF);
 
-        console.log(maps);
+        generated.maps.forEach((map, i) => {
+            zip.file(`data/map_${mapIndexOffset + i}.dat`, map);
+        });
+
+        const command = `/summon area_effect_cloud ~ ~1 ~ {Passengers: [${generated.maps.map((_, i) => `{id:"item",Item:{id:"minecraft:filled_map",Count:1b,tag:{map:${mapIndexOffset + i}}}}`).join(',')}]}`
+        zip.file('how_to_use.txt', `1. Drag data folder into your world folder\n2. Run this command:\n${command}`)
+
+        const blob = await zip.generateAsync({ type: 'blob'});
+
+        download.href = URL.createObjectURL(blob);
 
     }
 
@@ -93,9 +71,19 @@
         image-rendering: pixelated;
     }
 
+    input[type="number"] {
+        color: black;
+    }
+
 </style>
 
 <!-- svelte-ignore a11y-missing-attribute -->
 <input type="file" accept="image/*" bind:files={files}/>
 
-<canvas bind:this={quantizedImgCanvas} />
+<input type="number" min=1 step=1 max=10 bind:value={mapsWidth} />
+<input type="number" min=1 step=1 max=10 bind:value={mapsHeight} />
+
+<canvas bind:this={previewCanvas} />
+
+<!-- svelte-ignore a11y-missing-attribute -->
+<a bind:this={download} download="maps.zip" target="_blank">Download maps</a>
