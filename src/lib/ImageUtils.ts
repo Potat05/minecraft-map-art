@@ -128,7 +128,9 @@ export class Color {
     }
 
     public static distance(a: Color, b: Color): number {
-        return Math.sqrt((b.r - a.r)**2 + (b.g - a.g)**2 + (b.b - a.b)**2 + (b.a - a.a)**2);
+        // Alpha gets more distance than the other components.
+        // This is to stop some quantization issues.
+        return Math.sqrt((b.r - a.r)**2 + (b.g - a.g)**2 + (b.b - a.b)**2 + ((b.a - a.a)*2)**2);
     }
 
     public static sub(a: Color, b: Color): Color {
