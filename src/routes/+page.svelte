@@ -1,7 +1,9 @@
 <script lang="ts">
     import * as ImageUtils from "$lib/ImageUtils";
+    import { Block, Litematic, Region } from "$lib/minecraft-map-art/litematic";
     import { encodeImageToMapNBTs } from "$lib/minecraft-map-art/map";
     import JSZip from 'jszip';
+    import { onMount } from "svelte";
 
     let files: FileList;
 
@@ -45,6 +47,24 @@
         download.href = URL.createObjectURL(blob);
 
     }
+
+    onMount(async () => {
+        const region = new Region({ x: 0, y: 0, z: 0 }, { x: 3, y: 3, z: 3 });
+        region.set({ x: 0, y: 0, z: 0 }, new Block('minecraft:stone'));
+
+        const litematic = new Litematic('Potato', 'Testing', 'Testing schematic.');
+        litematic.regions['Unnamed'] = region;
+
+        console.log(litematic.nbt());
+        console.log(litematic.getFile());
+
+        const a = document.createElement('a');
+        a.innerText = 'download test schematic.';
+        a.download = 'test.litematic';
+        a.target = '_blank';
+        a.href = URL.createObjectURL(new Blob([ litematic.getFile() ]));
+        document.body.appendChild(a);
+    });
 
 </script>
 
