@@ -113,8 +113,12 @@ export class NBT_Int_Array implements NBT_ValueBase {
     }
 
     public encode(): ArrayBuffer {
-        // TODO: This is little endian, make this encode to big endian.
-        return joinBuffers([ new NBT_Number('Int', this.array.length).encode(), this.array.buffer ]);
+        const encoded = new ArrayBuffer(this.array.byteLength);
+        const view = new DataView(encoded);
+        for(let i = 0; i < this.array.length; i++) {
+            view.setInt32(i * this.array.BYTES_PER_ELEMENT, this.array[i], false);
+        }
+        return joinBuffers([ new NBT_Number('Int', this.array.length).encode(), encoded ]);
     }
 }
 
@@ -127,8 +131,12 @@ export class NBT_Long_Array implements NBT_ValueBase {
     }
 
     public encode(): ArrayBuffer {
-        // TODO: This is little endian, make this encode to big endian.
-        return joinBuffers([ new NBT_Number('Int', this.array.length).encode(), this.array.buffer ]);
+        const encoded = new ArrayBuffer(this.array.byteLength);
+        const view = new DataView(encoded);
+        for(let i = 0; i < this.array.length; i++) {
+            view.setBigInt64(i * this.array.BYTES_PER_ELEMENT, this.array[i], false);
+        }
+        return joinBuffers([ new NBT_Number('Int', this.array.length).encode(), encoded ]);
     }
 }
 
