@@ -37,19 +37,10 @@ export function evaluateColor(color: Color, tone: ColorTone): Color {
 
 
 
-export type Block = {
-    name: string;
-    id: string;
-    flammable: boolean;
-    requiresSupport: boolean;
-}
-
-
-
 export type MapColor = {
     name: string;
     color: Color;
-    blocks: Block[];
+    blocks: any[];
 }
 
 export type MapColorList = MapColor[];

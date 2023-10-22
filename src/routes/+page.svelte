@@ -20,7 +20,7 @@
     let mapsWidth: number = 2;
     let mapsHeight: number = 2;
 
-    let download: HTMLAnchorElement;
+    let downloadMaps: HTMLAnchorElement;
 
     async function update(file: File): Promise<void> {
 
@@ -44,27 +44,9 @@
 
         const blob = await zip.generateAsync({ type: 'blob'});
 
-        download.href = URL.createObjectURL(blob);
+        downloadMaps.href = URL.createObjectURL(blob);
 
     }
-
-    onMount(async () => {
-        const region = new Region({ x: 0, y: 0, z: 0 }, { x: 3, y: 3, z: 3 });
-        region.set({ x: 0, y: 0, z: 0 }, new Block('minecraft:stone'));
-
-        const litematic = new Litematic('Potato', 'Testing', 'Testing schematic.');
-        litematic.regions['Unnamed'] = region;
-
-        console.log(litematic.nbt());
-        console.log(litematic.getFile());
-
-        const a = document.createElement('a');
-        a.innerText = 'download test schematic.';
-        a.download = 'test.litematic';
-        a.target = '_blank';
-        a.href = URL.createObjectURL(new Blob([ litematic.getFile() ]));
-        document.body.appendChild(a);
-    });
 
 </script>
 
@@ -106,4 +88,4 @@
 <canvas bind:this={previewCanvas} />
 
 <!-- svelte-ignore a11y-missing-attribute -->
-<a bind:this={download} download="maps.zip" target="_blank">Download maps</a>
+<a bind:this={downloadMaps} download="maps.zip" target="_blank">Download maps</a>
