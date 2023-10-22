@@ -68,8 +68,23 @@ export class Region {
         if(this.size.y < 0) this.pos.y -= this.size.y *= -1;
         if(this.size.z < 0) this.pos.z -= this.size.z *= -1;
 
-        this.palette = [];
+        // First palette entry MUST be air.
+        this.palette = [ new Block('minecraft:air') ];
         this.indices = new Uint32Array(this.size.x * this.size.y * this.size.z);
+    }
+
+    public getVolume(): number {
+        return this.size.x * this.size.y * this.size.z;
+    }
+
+    public getBlocks(): number {
+        let count = 0;
+        for(let i = 0; i < this.indices.length; i++) {
+            if(this.indices[count] != 0) {
+                count++;
+            }
+        }
+        return count;
     }
 
     public containsPos(pos: Vec): boolean {
@@ -81,7 +96,7 @@ export class Region {
 
     private getIndex(pos: Vec): number {
         // TODO: This is probably wrong.
-        return pos.x + ((pos.y + (this.pos.z) * this.size.y) * this.size.x);
+        return pos.x + ((pos.y + (pos.z) * this.size.y) * this.size.x);
     }
 
     public set(pos: Vec, block: Block): void {
@@ -102,12 +117,31 @@ export class Region {
 
     public nbt(): NBT_Value {
 
-        const numBitsPerBlock = Math.max(Math.ceil(Math.log2(this.palette.length)), 4);
+        const numBitsPerBlock = Math.ceil(Math.log2(this.palette.length));
         const numBlocksPerLong = Math.floor(64 / numBitsPerBlock);
         const numBlocks = this.size.x * this.size.y * this.size.z;
         const numLongs = Math.ceil(numBlocks / numBlocksPerLong);
-        // TODO: Encode into this.
+
         const blockStates = new BigInt64Array(numLongs);
+
+        let bitIndex: number = 0;
+        let longIndex: number = 0;
+
+        for(let x = 0; x < this.size.x; x++) {
+            for(let y = 0; y < this.size.y; y++) {
+                for(let z = 0; z < this.size.z; z++) {
+                    const index = this.indices[this.getIndex({ x, y, z })];
+                    
+                    blockStates[longIndex] |= BigInt(index) << BigInt(bitIndex);
+
+                    bitIndex += numBitsPerBlock;
+                    if(bitIndex >= 64) {
+                        bitIndex = 0;
+                        longIndex++;
+                    }
+                }
+            }
+        }
 
         return {
             Position: {
@@ -162,8 +196,8 @@ export class Litematic {
                 RegionCount: new NBT_Number('Int', Object.keys(this.regions).length),
                 TimeCreated: new NBT_Number('Long', BigInt(Date.now())),
                 TimeModified: new NBT_Number('Long', BigInt(Date.now())),
-                TotalBlocks: new NBT_Number('Int', 27), // TODO: Calculate total blocks that aren't air.
-                TotalVolume: new NBT_Number('Int', 27), // TODO: Calculate total blocks.
+                TotalBlocks: new NBT_Number('Int', Object.values(this.regions).reduce((total, region) => total + region.getBlocks(), 0)),
+                TotalVolume: new NBT_Number('Int', Object.values(this.regions).reduce((total, region) => total + region.getVolume(), 0))
             },
             Regions: Object.fromEntries(Object.entries(this.regions).map(([ regionName, region ]) => {
                 return [ regionName, region.nbt() ];
