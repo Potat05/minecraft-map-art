@@ -1,9 +1,7 @@
 <script lang="ts">
     import * as ImageUtils from "$lib/ImageUtils";
-    import { Block, Litematic, Region } from "$lib/minecraft-map-art/litematic";
     import { encodeImageToMapNBTs } from "$lib/minecraft-map-art/map";
     import JSZip from 'jszip';
-    import { onMount } from "svelte";
 
     let files: FileList;
 

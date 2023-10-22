@@ -1,5 +1,5 @@
 
-import * as pako from "pako";
+import pako from "pako";
 
 
 
